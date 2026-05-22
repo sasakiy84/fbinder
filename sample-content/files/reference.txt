@@ -1,0 +1,4 @@
+This is a copied static file.
+
+Markdown and CSV are rendered to HTML.
+Other files are copied as-is.

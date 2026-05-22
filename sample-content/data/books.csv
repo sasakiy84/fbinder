@@ -1,0 +1,4 @@
+title,authors,year,url,notes
+Digital Libraries,"Smith, A.",2024,https://example.com/digital-libraries,確認済み
+Metadata Practice,"Yamada, Sato",2026,https://example.com/metadata?lang=ja,CSV の URL は自動リンクになります
+Archive Basics,K. Tanaka,2023,,静的ファイルも一緒に置けます

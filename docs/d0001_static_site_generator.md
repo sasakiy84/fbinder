@@ -1,6 +1,8 @@
 # 静的サイト生成ツールの設計案
 
-この文書は、このリポジトリを単体で使える軽量な静的サイト生成ツールとして成立させるための設計案である。特定の入力ディレクトリに置かれた Markdown / CSV / 静的ファイルを HTML に変換し、出力ディレクトリへ配置する。まだ実装には入らず、責務、入出力、CLI、依存関係、段階的な実装計画を整理する。
+この文書は、このリポジトリを単体で使える軽量な静的サイト生成ツールとして成立させるための設計と実装方針をまとめる。特定の入力ディレクトリに置かれた Markdown / CSV / 静的ファイルを HTML に変換し、出力ディレクトリへ配置する。
+
+2026-05-22 時点では、P1 から P3 のうち `build` / `check` / `watch`、Markdown / CSV 変換、静的ファイルコピー、トップページとディレクトリ別 index、回復可能なエラー一覧、HTML テンプレート、単一 CSS のコピーを実装済みである。設定ファイル導入と運用サンプルの拡充は未実装であり、P4 以降の対象とする。
 
 ## 目的
 
@@ -55,9 +57,9 @@ source_dir/
 `source_dir` と `output_dir` は CLI オプションで指定する。特定のフォルダ名を前提にしない。
 
 ```text
-library-presentator build --source ./content --output ./public
-library-presentator watch --source ./content --output ./public --interval 1.0
-library-presentator check --source ./content
+uv run python main.py build --source ./content --output ./public
+uv run python main.py watch --source ./content --output ./public --interval 1.0
+uv run python main.py check --source ./content
 ```
 
 ## 想定ユースケース
@@ -184,13 +186,18 @@ Markdown / CSV 以外のファイルは、原則としてそのままコピー�
 - `<!DOCTYPE html>` を出す。
 - `<html lang="ja">` を既定とし、将来設定で変更可能にする。
 - `<meta charset="utf-8">` と `<meta name="viewport" content="width=device-width, initial-scale=1.0">` を出す。
-- `<header>`、`<nav>`、`<main>`、`<footer>` を使う。
+- `<header>`、`<nav>`、`<main>` を使う。
 - 各ページの `<h1>` は 1 つにする。
 - 見出し階層を不自然に飛ばさない。
 - 一覧は `<ul>`、CSV は `<table>` を使う。
 - CSV table には `<caption>` を付ける。
 - JavaScript なしで全ページを閲覧可能にする。
-- CSS はまず単一の `static/style.css` にまとめる。
+- CSS は `static/style.css` に置き、生成時に出力先の `static/style.css` へコピーする。
+- Markdown コピー用の JavaScript は `static/script.js` に置き、生成時に出力先の `static/script.js` へコピーする。
+- 共通の HTML 外枠は `templates/page.html` に置き、ページごとの title、nav、本文を差し込む。
+- Markdown / CSV の詳細ページには、build 時点の生成日を `<time>` で表示する。
+- Markdown / CSV の詳細ページには、Markdown としてコピーするボタンを表示する。Markdown 入力は front matter を除いた本文をコピーし、CSV 入力は Markdown table に変換した内容をコピーする。JavaScript が動かない環境でも本文閲覧は成立させる。
+- Markdown の詳細ページには、本文見出しから目次を生成し、見出しへのページ内リンクを出す。
 - 変換・コピー時の回復可能なエラーは `errors.html` に一覧表示する。
 
 初期実装では検索や絞り込みは入れない。静的 HTML とブラウザ標準のページ内検索で足りる状態を先に作る。
@@ -214,23 +221,26 @@ Markdown / CSV 以外のファイルは、原則としてそのままコピー�
 - エラー一覧は目立たせるが、全体のトーンから浮かせすぎない。
 - アニメーション、装飾画像、カード風の多用、濃い背景、強いグラデーションは使わない。
 
-CSS は最初からテーマ機構を持たせず、単一の落ち着いた既定スタイルを作る。将来的に必要になった場合だけ、`prefers-color-scheme` によるダークモードや設定ファイルによる色変更を検討する。
+CSS は最初からテーマ機構を持たせず、`static/style.css` に単一の落ち着いた既定スタイルを置く。将来的に必要になった場合だけ、`prefers-color-scheme` によるダークモードや設定ファイルによる色変更を検討する。
+
+HTML の共通構造は `templates/page.html` に置く。テンプレートは生成ページの `<head>`、site nav、`<main>` を受け持ち、Markdown / CSV / index / errors の本文 HTML はツール側で HTML エスケープ済みの断片として差し込む。
 
 ページ種別ごとの方針。
 
 - Markdown ページ: 本文の可読性を最優先にし、見出し、段落、リスト、引用、コードブロックの余白を整える。
 - CSV ページ: 表を主役にし、caption、列見出し、横スクロール、長い URL の折り返しを整える。
+- 詳細ページ: 生成日と Markdown コピーボタンをタイトル直下に控えめに表示し、目次は本文を読む前の補助ナビゲーションとして置く。
 - index ページ: ディレクトリとファイルを淡々と一覧し、階層と更新日時が分かるようにする。
 - errors ページ: ファイル名、処理種別、エラー内容を表で確認できるようにする。
 
 ## CLI 設計
 
-コマンド名はリポジトリ名に合わせて `library-presentator` とする案を基本にする。
+初期実装では package entry point を作らず、`uv run python main.py` で実行する。
 
 ```text
-library-presentator build --source ./content --output ./public
-library-presentator watch --source ./content --output ./public --interval 1.0
-library-presentator check --source ./content
+uv run python main.py build --source ./content --output ./public
+uv run python main.py watch --source ./content --output ./public --interval 1.0
+uv run python main.py check --source ./content
 ```
 
 ### build
@@ -437,7 +447,7 @@ Google Drive や他のストレージ同期は、このツールの外側で行�
 - トップページに全ページと静的ファイルへのリンク一覧を出す。
 - 回復可能なエラーを集約して `errors.html` を生成する。
 - CSS は最小の読みやすいスタイルだけにし、長文と表を読む負荷を下げる。
-- `uv run library-presentator build --source ./content --output ./public` で動かす。
+- `uv run python main.py build --source ./content --output ./public` で動かす。
 
 ### P2: watch と check
 
@@ -468,7 +478,7 @@ Google Drive や他のストレージ同期は、このツールの外側で行�
 - slug は入力ファイル名を保ち、リンク生成時に URL encode する。
 - CSV 内の `http://` / `https://` は自動リンクにする。
 - 設定ファイルは P2 以降に導入し、P1 は CLI オプションだけで動かす。
-- コマンド名は `library-presentator` とする。
+- 初期実装の実行方法は `uv run python main.py` とする。必要になったら package entry point として `library-presentator` を追加する。
 - 出力パス衝突時は、ソート順で先に処理された入力を採用し、後続の衝突ファイルをスキップして `errors.html` に記録する。
 - デザインはシンプルな 1 カラムを基本にし、システムフォント、控えめな色、読みやすい本文幅を既定にする。
 

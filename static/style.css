@@ -1,0 +1,226 @@
+/* Default stylesheet copied into generated sites as static/style.css. */
+:root {
+  color-scheme: light;
+  --bg: #ffffff;
+  --text: #1f2328;
+  --muted: #69707a;
+  --link: #1d5f99;
+  --border: #e6e8eb;
+  --soft-border: #f1f2f4;
+  --surface: #ffffff;
+  --subtle: #fafafa;
+  --error-bg: #fff8f7;
+  --error-border: #d13f32;
+}
+
+html {
+  box-sizing: border-box;
+}
+
+*,
+::before,
+::after {
+  box-sizing: inherit;
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-size: 16px;
+  line-height: 1.7;
+}
+
+header {
+  border-block-end: 1px solid var(--soft-border);
+  background: var(--surface);
+}
+
+header nav,
+main {
+  width: min(100% - 32px, 960px);
+  margin-inline: auto;
+}
+
+nav ul {
+  display: flex;
+  gap: 16px;
+  list-style: none;
+  margin: 0;
+  padding: 12px 0;
+}
+
+main {
+  padding: 36px 0 56px;
+}
+
+h1,
+h2,
+h3 {
+  line-height: 1.3;
+}
+
+h1 {
+  margin: 0 0 28px;
+  font-size: 2rem;
+}
+
+h2 {
+  margin-top: 36px;
+  font-size: 1.45rem;
+}
+
+h2[id] {
+  scroll-margin-top: 24px;
+}
+
+a {
+  color: var(--link);
+  text-decoration-thickness: 0.08em;
+  text-underline-offset: 0.14em;
+}
+
+p,
+ul,
+ol,
+blockquote,
+pre,
+.table-wrap {
+  margin-block: 0 20px;
+}
+
+blockquote {
+  border-inline-start: 4px solid var(--border);
+  color: var(--muted);
+  padding-inline-start: 16px;
+}
+
+pre {
+  overflow-x: auto;
+  border: 1px solid var(--soft-border);
+  background: var(--subtle);
+  padding: 14px;
+}
+
+code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 0.94em;
+}
+
+.table-wrap {
+  overflow-x: auto;
+}
+
+table {
+  width: 100%;
+  min-width: 640px;
+  border-collapse: collapse;
+  background: var(--surface);
+}
+
+caption {
+  padding: 10px 0;
+  text-align: left;
+  font-weight: 700;
+}
+
+th,
+td {
+  border-block-end: 1px solid var(--border);
+  padding: 10px 12px;
+  text-align: left;
+  vertical-align: top;
+  overflow-wrap: anywhere;
+}
+
+th {
+  background: var(--subtle);
+}
+
+.meta {
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
+.page-tools {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px 14px;
+  margin-block: -12px 28px;
+}
+
+.page-meta {
+  color: var(--muted);
+  font-size: 0.95rem;
+  margin: 0;
+}
+
+.copy-button {
+  min-block-size: 32px;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  background: var(--surface);
+  color: var(--text);
+  cursor: pointer;
+  font: inherit;
+  font-size: 0.9rem;
+  padding: 4px 10px;
+}
+
+.copy-button:hover {
+  background: var(--subtle);
+}
+
+.copy-button:focus-visible {
+  outline: 2px solid var(--link);
+  outline-offset: 2px;
+}
+
+.copy-status {
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
+.toc {
+  border-block: 1px solid var(--soft-border);
+  margin-block: 0 32px;
+  padding-block: 18px 4px;
+}
+
+.toc h2 {
+  margin: 0 0 10px;
+  font-size: 1.05rem;
+}
+
+.toc ol {
+  margin: 0;
+  padding-inline-start: 22px;
+}
+
+.toc li {
+  margin-block: 4px;
+}
+
+.toc-level-3 {
+  margin-inline-start: 18px;
+}
+
+.toc-level-4,
+.toc-level-5,
+.toc-level-6 {
+  margin-inline-start: 36px;
+}
+
+.notice {
+  border: 1px solid var(--soft-border);
+  background: var(--surface);
+  padding: 12px 14px;
+  margin-bottom: 20px;
+}
+
+.notice.error {
+  border-color: var(--error-border);
+  background: var(--error-bg);
+}
