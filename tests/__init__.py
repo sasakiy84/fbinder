@@ -1,1 +1,1 @@
-"""Unit tests for library-presentator."""
+"""Unit tests for fbinder."""

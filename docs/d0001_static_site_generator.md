@@ -48,7 +48,7 @@
 ```text
 source_dir/
   -> Markdown / CSV / assets を配置
-    -> library-presentator build または watch
+    -> fbinder build または watch
       -> output_dir/
         -> HTML / CSS / copied assets を生成
           -> file server / Nginx alias / local browser で閲覧
@@ -302,7 +302,7 @@ Markdown の構文エラー、CSV の行不整合、静的ファイルのコピ�
 
 ```toml
 [site]
-title = "Library Presentator"
+title = "fbinder"
 language = "ja"
 base_url = "/"
 
@@ -413,7 +413,7 @@ Nginx alias の例。
 
 ```nginx
 location /docs/ {
-    alias /srv/library-presentator/public/;
+    alias /srv/fbinder/public/;
     index index.html;
 }
 ```
@@ -465,7 +465,7 @@ Google Drive や他のストレージ同期は、このツールの外側で行�
 
 ### P4: 設定ファイルと運用ドキュメント
 
-- `library-presentator.toml` を導入する。
+- `fbinder.toml` を導入する。
 - Nginx alias 前提のサンプル設定を docs に追加する。
 - 外部同期やエージェント出力を入力にする運用例を docs に追加する。
 
@@ -478,7 +478,7 @@ Google Drive や他のストレージ同期は、このツールの外側で行�
 - slug は入力ファイル名を保ち、リンク生成時に URL encode する。
 - CSV 内の `http://` / `https://` は自動リンクにする。
 - 設定ファイルは P2 以降に導入し、P1 は CLI オプションだけで動かす。
-- 初期実装の実行方法は `uv run python main.py` とする。必要になったら package entry point として `library-presentator` を追加する。
+- 初期実装の実行方法は `uv run python main.py` とする。必要になったら package entry point として `fbinder` を追加する。
 - 出力パス衝突時は、ソート順で先に処理された入力を採用し、後続の衝突ファイルをスキップして `errors.html` に記録する。
 - デザインはシンプルな 1 カラムを基本にし、システムフォント、控えめな色、読みやすい本文幅を既定にする。
 

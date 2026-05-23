@@ -1,6 +1,6 @@
-# library-presentator
+# fbinder
 
-`library-presentator` は、任意の入力ディレクトリに置いた Markdown / CSV / 静的ファイルを、JavaScript なしで読める静的 HTML サイトへ変換する軽量 CLI です。
+`fbinder` は、任意の入力ディレクトリに置いた Markdown / CSV / 静的ファイルを、JavaScript なしで読める静的 HTML サイトへ変換する軽量 CLI です。
 
 ## 使い方
 

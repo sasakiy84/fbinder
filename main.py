@@ -103,7 +103,7 @@ def main(argv: Sequence[str] | None = None) -> int:
 
 
 def build_parser() -> argparse.ArgumentParser:
-    parser = argparse.ArgumentParser(prog="library-presentator")
+    parser = argparse.ArgumentParser(prog="fbinder")
     subparsers = parser.add_subparsers(dest="command", required=True)
 
     build = subparsers.add_parser("build", help="Generate a static HTML site.")
@@ -577,7 +577,7 @@ def build_index_pages(
         child_dirs = sorted(
             child for child in directories if child.parent == directory and child != directory
         )
-        title = "Library Presentator" if directory == PurePosixPath(".") else display_name(directory)
+        title = "fbinder" if directory == PurePosixPath(".") else display_name(directory)
         output_rel = directory / "index.html" if directory != PurePosixPath(".") else PurePosixPath("index.html")
         body_html = render_index_body(title, output_rel, child_dirs, directory_items)
         index_pages.append(
@@ -709,7 +709,7 @@ def render_document(
     template = Template(template_path.read_text(encoding="utf-8"))
     return template.substitute(
         page_title=html.escape(page.title),
-        document_title=html.escape(f"{page.title} | Library Presentator"),
+        document_title=html.escape(f"{page.title} | fbinder"),
         style_href=style_href,
         script_href=script_href,
         home_href=home_href,

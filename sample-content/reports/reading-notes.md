@@ -16,5 +16,5 @@ title: 読書メモ
 
 ```python
 def example() -> str:
-    return "library-presentator"
+    return "fbinder"
 ```

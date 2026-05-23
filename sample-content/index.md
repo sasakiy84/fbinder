@@ -5,7 +5,7 @@ tags: [sample, library]
 
 # サンプル図書館サイト
 
-これは `library-presentator` の動作確認用コンテンツです。
+これは `fbinder` の動作確認用コンテンツです。
 
 Markdown、CSV、静的ファイルがそれぞれ HTML サイトとして出力されることを確認できます。
 
