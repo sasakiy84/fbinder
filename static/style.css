@@ -337,6 +337,7 @@ th {
 
   .site-search input[type="search"],
   .site-search button {
+    flex-basis: auto;
     inline-size: 100%;
   }
 }
