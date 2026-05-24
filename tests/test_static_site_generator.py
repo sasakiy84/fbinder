@@ -91,6 +91,20 @@ class StaticSiteGeneratorTest(unittest.TestCase):
 
             self.assertEqual((output / "files" / "note.txt").read_text(encoding="utf-8"), "plain text")
 
+    def test_index_page_lists_files_without_source_paths(self) -> None:
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            source = root / "content"
+            output = root / "public"
+            source.mkdir()
+            (source / "report.md").write_text("# Trip Plan\n\nBody text.\n", encoding="utf-8")
+
+            build_site(source, output)
+
+            html = (output / "index.html").read_text(encoding="utf-8")
+            self.assertIn('<a href="report.html">Trip Plan</a>', html)
+            self.assertNotIn("report.md", html)
+
     def test_default_static_assets_are_copied_from_static_sources(self) -> None:
         with tempfile.TemporaryDirectory() as temp:
             root = Path(temp)

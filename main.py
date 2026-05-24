@@ -635,11 +635,10 @@ def render_index_body(
         for item in sorted(items, key=lambda value: value.source_rel.as_posix()):
             href = relative_url(current_output_rel, item.output_rel)
             label = html.escape(item.title)
-            source = html.escape(item.source_rel.as_posix())
             updated = html.escape(format_mtime(item.mtime))
             parts.append(
                 f'<li><a href="{href}">{label}</a> '
-                f'<span class="meta">{source} / {updated}</span></li>'
+                f'<span class="meta">{updated}</span></li>'
             )
         parts.append("</ul>")
 
