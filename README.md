@@ -34,6 +34,64 @@ uv run python main.py watch --source ./content --output ./public --interval 1.0
 python -m http.server 8000 --directory public
 ```
 
+## サーバー運用
+
+生成した出力ディレクトリを nginx で静的配信できます。次の例では `watch` コマンドの出力先を `/var/www/wiki-public/` にして、nginx がそのディレクトリを読む構成にします。
+
+```nginx
+server {
+    listen 80;
+    server_name example.com;
+
+    root /var/www/wiki-public;
+    index index.html;
+
+    location / {
+        auth_basic "fbinder";
+        auth_basic_user_file /etc/nginx/fbinder.htpasswd;
+        try_files $uri $uri/ =404;
+    }
+}
+```
+
+basic auth のパスワードファイルは、nginx から読める場所に作ります。Debian / Ubuntu では `htpasswd` コマンドは `apache2-utils` に含まれます。
+
+```sh
+sudo apt install apache2-utils
+sudo htpasswd -c /etc/nginx/fbinder.htpasswd fbinder-user
+sudo nginx -t
+sudo systemctl reload nginx
+```
+
+`watch` コマンドを user systemd で常駐させる場合は、次の unit を `~/.config/systemd/user/fbinder-watch.service` に置きます。`WorkingDirectory`、`--source`、`--output` は実際の配置に合わせて変更してください。
+
+```systemd
+# fbinder の watch コマンドを user systemd で常駐させる unit。
+# 利用時は ~/.config/systemd/user/ に配置し、systemctl --user enable --now で起動する。
+[Unit]
+Description=fbinder static site watcher
+After=default.target
+
+[Service]
+Type=simple
+WorkingDirectory=/home/fbinder-user/fbinder
+Environment=PYTHONUNBUFFERED=1
+ExecStart=/home/fbinder-user/.local/bin/uv run python main.py watch --source /home/fbinder-user/ObsidianVault/ --output /var/www/wiki-public/
+Restart=on-failure
+RestartSec=5s
+
+[Install]
+WantedBy=default.target
+```
+
+user systemd の unit は次のように反映して起動します。
+
+```sh
+systemctl --user daemon-reload
+systemctl --user enable --now fbinder-watch.service
+systemctl --user status fbinder-watch.service
+```
+
 ## 入出力
 
 - `*.md` は HTML ページへ変換します。front matter の `title`、最初の `# 見出し`、ファイル名の順でページタイトルを決めます。
