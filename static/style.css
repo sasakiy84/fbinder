@@ -183,6 +183,111 @@ th {
   font-size: 0.9rem;
 }
 
+.site-search {
+  display: block;
+  border-block: 1px solid var(--soft-border);
+  margin-block: 0 32px;
+  padding-block: 18px 20px;
+}
+
+.site-search-form {
+  margin: 0;
+}
+
+.site-search label {
+  display: block;
+  font-weight: 700;
+  margin-block-end: 6px;
+}
+
+.site-search-controls {
+  display: flex;
+  gap: 8px;
+}
+
+.site-search input[type="search"] {
+  flex: 1 1 220px;
+  min-inline-size: 0;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  color: var(--text);
+  font: inherit;
+  min-block-size: 40px;
+  padding: 7px 10px;
+}
+
+.site-search button {
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  background: var(--surface);
+  color: var(--text);
+  cursor: pointer;
+  font: inherit;
+  min-block-size: 40px;
+  padding: 7px 14px;
+}
+
+.site-search button:hover,
+.search-pagination a:hover {
+  background: var(--subtle);
+}
+
+.site-search input[type="search"]:focus-visible,
+.site-search button:focus-visible,
+.search-pagination a:focus-visible {
+  outline: 2px solid var(--link);
+  outline-offset: 2px;
+}
+
+.search-status {
+  color: var(--muted);
+  font-size: 0.9rem;
+  margin-block: 10px 0;
+}
+
+.search-results {
+  list-style: none;
+  margin: 14px 0 0;
+  padding: 0;
+}
+
+.search-result {
+  border-block-start: 1px solid var(--soft-border);
+  padding-block: 12px;
+}
+
+.search-result-meta,
+.search-snippet {
+  color: var(--muted);
+  font-size: 0.92rem;
+  margin: 4px 0 0;
+}
+
+.search-snippet mark {
+  background: #fff1a8;
+  color: inherit;
+  padding-inline: 0.08em;
+}
+
+.search-pagination {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-block-start: 14px;
+}
+
+.search-pagination a {
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 4px 10px;
+  text-decoration: none;
+}
+
+.search-pagination a[aria-disabled="true"] {
+  color: var(--muted);
+  pointer-events: none;
+}
+
 .toc {
   border-block: 1px solid var(--soft-border);
   margin-block: 0 32px;
@@ -223,4 +328,15 @@ th {
 .notice.error {
   border-color: var(--error-border);
   background: var(--error-bg);
+}
+
+@media (max-width: 560px) {
+  .site-search-controls {
+    flex-direction: column;
+  }
+
+  .site-search input[type="search"],
+  .site-search button {
+    inline-size: 100%;
+  }
 }

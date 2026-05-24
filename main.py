@@ -11,6 +11,7 @@ from __future__ import annotations
 import argparse
 import csv
 import html
+import json
 import logging
 import posixpath
 import shutil
@@ -20,7 +21,7 @@ from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path, PurePosixPath
 from string import Template
-from typing import Literal, Sequence
+from typing import Literal, Sequence, TypedDict
 from urllib.parse import quote
 
 from markdown_it import MarkdownIt
@@ -71,6 +72,7 @@ class RenderedPage:
     mtime: float
     toc_items: list[TocItem]
     copy_markdown: str | None
+    search_text: str
 
 
 @dataclass(frozen=True)
@@ -83,6 +85,19 @@ class BuildResult:
 
 class FatalBuildError(Exception):
     """Raised when a site build cannot safely start or complete."""
+
+
+class SearchIndexEntry(TypedDict):
+    title: str
+    url: str
+    kind: ItemKind
+    updated: str
+    text: str
+
+
+class SearchIndexDocument(TypedDict):
+    version: int
+    items: list[SearchIndexEntry]
 
 
 def main(argv: Sequence[str] | None = None) -> int:
@@ -197,6 +212,7 @@ def build_site(source: Path, output: Path) -> BuildResult:
         copied_files = copy_static_files(source_dir, temp_dir, files, errors)
         page_map = {page.output_rel: page for page in pages}
         index_pages = build_index_pages(source_dir, pages, copied_files)
+        write_search_index(temp_dir, pages)
 
         for index_page in index_pages:
             page_map[index_page.output_rel] = merge_index_page(
@@ -342,6 +358,7 @@ def render_markdown_file(source_path: Path, source_rel: PurePosixPath) -> Render
         mtime=source_path.stat().st_mtime,
         toc_items=toc_items,
         copy_markdown=markdown_text,
+        search_text=join_search_text([title.strip(), front_matter_search_text(front_matter), markdown_text]),
     )
 
 
@@ -483,7 +500,35 @@ def render_csv_file(source_path: Path, source_rel: PurePosixPath) -> RenderedPag
         mtime=source_path.stat().st_mtime,
         toc_items=[],
         copy_markdown=copy_markdown,
+        search_text=csv_search_text(title, header, rows[1:]),
     )
+
+
+def front_matter_search_text(front_matter: dict[str, str | list[str]]) -> str:
+    values: list[str] = []
+    for value in front_matter.values():
+        if isinstance(value, str):
+            values.append(value)
+        else:
+            values.extend(value)
+    return join_search_text(values)
+
+
+def csv_search_text(title: str, header: list[str], rows: list[list[str]]) -> str:
+    values: list[str] = [title]
+    values.extend(header)
+    for row in rows:
+        values.extend(row)
+    return join_search_text(values)
+
+
+def join_search_text(values: Sequence[str]) -> str:
+    parts: list[str] = []
+    for value in values:
+        cleaned = " ".join(value.split())
+        if cleaned:
+            parts.append(cleaned)
+    return " ".join(parts)
 
 
 def render_csv_table(title: str, header: list[str], rows: list[list[str]]) -> str:
@@ -590,6 +635,7 @@ def build_index_pages(
                 mtime=time.time(),
                 toc_items=[],
                 copy_markdown=None,
+                search_text="",
             )
         )
 
@@ -609,6 +655,7 @@ def merge_index_page(existing: RenderedPage | None, generated: RenderedPage) -> 
         mtime=existing.mtime,
         toc_items=existing.toc_items,
         copy_markdown=existing.copy_markdown,
+        search_text=existing.search_text,
     )
 
 
@@ -687,6 +734,7 @@ def build_errors_page(errors: list[BuildError]) -> RenderedPage:
         mtime=time.time(),
         toc_items=[],
         copy_markdown=None,
+        search_text="",
     )
 
 
@@ -699,6 +747,7 @@ def render_document(
     home_href = relative_url(current_output_rel, PurePosixPath("index.html"))
     style_href = relative_url(current_output_rel, PurePosixPath("static/style.css"))
     script_href = relative_url(current_output_rel, PurePosixPath("static/script.js"))
+    search_index_href = relative_url(current_output_rel, PurePosixPath("search-index.json"))
     error_link_html = ""
     if has_errors:
         errors_href = relative_url(current_output_rel, PurePosixPath("errors.html"))
@@ -711,6 +760,7 @@ def render_document(
         document_title=html.escape(f"{page.title} | fbinder"),
         style_href=style_href,
         script_href=script_href,
+        search_index_href=search_index_href,
         home_href=home_href,
         error_link_html=error_link_html,
         page_meta_html=render_page_meta(page, generated_at),
@@ -763,6 +813,28 @@ def write_static_assets(output_dir: Path) -> None:
     shutil.copy2(project_path("static", "script.js"), static_dir / "script.js")
 
 
+def write_search_index(output_dir: Path, pages: list[RenderedPage]) -> None:
+    entries: list[SearchIndexEntry] = []
+    for page in sorted(pages, key=lambda value: value.output_rel.as_posix()):
+        if page.kind not in {"markdown", "csv"}:
+            continue
+        entries.append(
+            SearchIndexEntry(
+                title=page.title,
+                url=quote_posix_path(page.output_rel),
+                kind=page.kind,
+                updated=format_mtime(page.mtime),
+                text=page.search_text,
+            )
+        )
+
+    document: SearchIndexDocument = {"version": 1, "items": entries}
+    write_text_file(
+        output_dir / "search-index.json",
+        json.dumps(document, ensure_ascii=False, indent=2) + "\n",
+    )
+
+
 def write_text_file(path: Path, text: str) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(text, encoding="utf-8")
@@ -786,6 +858,7 @@ def replace_output_dir(output_dir: Path, temp_dir: Path) -> None:
 def is_reserved_output_path(source_rel: PurePosixPath, output_rel: PurePosixPath) -> bool:
     if output_rel in {
         PurePosixPath("errors.html"),
+        PurePosixPath("search-index.json"),
         PurePosixPath("static/style.css"),
         PurePosixPath("static/script.js"),
     }:

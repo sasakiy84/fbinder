@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import json
 import tempfile
 import unittest
 from pathlib import Path
@@ -122,6 +123,72 @@ class StaticSiteGeneratorTest(unittest.TestCase):
                 (output / "static" / "script.js").read_text(encoding="utf-8"),
                 project_path("static", "script.js").read_text(encoding="utf-8"),
             )
+
+    def test_search_index_contains_markdown_text_and_front_matter_metadata(self) -> None:
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            source = root / "content"
+            output = root / "public"
+            source.mkdir()
+            (source / "report.md").write_text(
+                "---\ntitle: Front Matter Title\ntags: [travel, report]\n---\n# Heading Title\n\nBody text.\n",
+                encoding="utf-8",
+            )
+
+            build_site(source, output)
+
+            search_index = json.loads((output / "search-index.json").read_text(encoding="utf-8"))
+            self.assertEqual(search_index["version"], 1)
+            self.assertEqual(len(search_index["items"]), 1)
+            item = search_index["items"][0]
+            self.assertEqual(item["title"], "Front Matter Title")
+            self.assertEqual(item["url"], "report.html")
+            self.assertEqual(item["kind"], "markdown")
+            self.assertIn("travel", item["text"])
+            self.assertIn("report", item["text"])
+            self.assertIn("Body text.", item["text"])
+
+            html = (output / "report.html").read_text(encoding="utf-8")
+            self.assertNotIn("tags: [travel, report]", html)
+
+    def test_search_index_contains_csv_text_but_not_static_files_or_indexes(self) -> None:
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            source = root / "content"
+            output = root / "public"
+            nested = source / "reports"
+            nested.mkdir(parents=True)
+            (nested / "books.csv").write_text("title,notes\nExample,確認済み\n", encoding="utf-8")
+            (source / "note.txt").write_text("plain text", encoding="utf-8")
+
+            build_site(source, output)
+
+            search_index = json.loads((output / "search-index.json").read_text(encoding="utf-8"))
+            self.assertEqual(len(search_index["items"]), 1)
+            item = search_index["items"][0]
+            self.assertEqual(item["title"], "books")
+            self.assertEqual(item["url"], "reports/books.html")
+            self.assertEqual(item["kind"], "csv")
+            self.assertIn("title", item["text"])
+            self.assertIn("確認済み", item["text"])
+
+    def test_generated_pages_include_search_ui_and_relative_search_index_url(self) -> None:
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            source = root / "content"
+            output = root / "public"
+            nested = source / "reports"
+            nested.mkdir(parents=True)
+            (nested / "trip.md").write_text("# Trip\n", encoding="utf-8")
+
+            build_site(source, output)
+
+            root_html = (output / "index.html").read_text(encoding="utf-8")
+            nested_html = (output / "reports" / "trip.html").read_text(encoding="utf-8")
+            self.assertIn('data-search-index="search-index.json"', root_html)
+            self.assertIn('data-search-index="../search-index.json"', nested_html)
+            self.assertIn('name="q" type="search"', root_html)
+            self.assertIn('id="site-search-pagination"', root_html)
 
     def test_invalid_csv_is_reported_but_valid_pages_are_generated(self) -> None:
         with tempfile.TemporaryDirectory() as temp:

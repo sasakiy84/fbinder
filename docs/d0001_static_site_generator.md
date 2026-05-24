@@ -2,7 +2,7 @@
 
 この文書は、このリポジトリを単体で使える軽量な静的サイト生成ツールとして成立させるための設計と実装方針をまとめる。特定の入力ディレクトリに置かれた Markdown / CSV / 静的ファイルを HTML に変換し、出力ディレクトリへ配置する。
 
-2026-05-22 時点では、P1 から P3 のうち `build` / `check` / `watch`、Markdown / CSV 変換、静的ファイルコピー、トップページとディレクトリ別 index、回復可能なエラー一覧、HTML テンプレート、単一 CSS のコピーを実装済みである。設定ファイル導入と運用サンプルの拡充は未実装であり、P4 以降の対象とする。
+2026-05-24 時点では、P1 から P3 のうち `build` / `check` / `watch`、Markdown / CSV 変換、静的ファイルコピー、トップページとディレクトリ別 index、回復可能なエラー一覧、HTML テンプレート、単一 CSS のコピー、検索インデックス生成とブラウザ側全文検索を実装済みである。設定ファイル導入は未実装であり、P4 以降の対象とする。
 
 ## 目的
 
@@ -28,6 +28,7 @@
 - Markdown から HTML への変換。
 - CSV から HTML table への変換。
 - トップページとディレクトリ別 index の生成。
+- Markdown / CSV 由来ページの検索インデックス生成。
 - CSS などサイト共通ファイルの生成またはコピー。
 - ファイル変更を検知して再生成する watch 処理。
 - 入力の基本検証を行う check 処理。
@@ -102,6 +103,7 @@ content/
 
 public/
   index.html
+  search-index.json
   reports/
   data/
   pages/
@@ -194,6 +196,7 @@ Markdown / CSV 以外のファイルは、原則としてそのままコピー�
 - JavaScript なしで全ページを閲覧可能にする。
 - CSS は `static/style.css` に置き、生成時に出力先の `static/style.css` へコピーする。
 - Markdown コピー用の JavaScript は `static/script.js` に置き、生成時に出力先の `static/script.js` へコピーする。
+- Markdown / CSV 由来ページを検索するための `search-index.json` を出力ディレクトリ直下に生成する。
 - 共通の HTML 外枠は `templates/page.html` に置き、ページごとの title、nav、本文を差し込む。
 - Markdown / CSV の詳細ページには、build 時点の生成日を `<time>` で表示する。
 - Markdown / CSV の詳細ページには、Markdown としてコピーするボタンを表示する。Markdown 入力は front matter を除いた本文をコピーし、CSV 入力は Markdown table に変換した内容をコピーする。JavaScript が動かない環境でも本文閲覧は成立させる。
@@ -232,6 +235,7 @@ HTML の共通構造は `templates/page.html` に置く。テンプレートは�
 - 詳細ページ: 生成日と Markdown コピーボタンをタイトル直下に控えめに表示し、目次は本文を読む前の補助ナビゲーションとして置く。
 - index ページ: ディレクトリとファイルを淡々と一覧し、階層と更新日時が分かるようにする。
 - errors ページ: ファイル名、処理種別、エラー内容を表で確認できるようにする。
+- 検索 UI: 全ページ共通で表示し、検索語 `q` とページ番号 `page` を URL query として扱う。
 
 ## CLI 設計
 
@@ -254,9 +258,10 @@ uv run python main.py check --source ./content
 3. Markdown を HTML に変換する。
 4. CSV を HTML table に変換する。
 5. ディレクトリ別 index とトップページを生成する。
-6. CSS と静的ファイルを出力する。
-7. 回復可能なエラーがあれば `errors.html` を生成する。
-8. 一時ディレクトリに生成してから出力ディレクトリと入れ替える。
+6. `search-index.json` を生成する。
+7. CSS と静的ファイルを出力する。
+8. 回復可能なエラーがあれば `errors.html` を生成する。
+9. 一時ディレクトリに生成してから出力ディレクトリと入れ替える。
 
 出力途中の壊れた状態を配信しないため、生成は `output_dir.tmp` に行う。成功したら既存の `output_dir` と入れ替える。失敗した場合は既存の出力を残す。
 

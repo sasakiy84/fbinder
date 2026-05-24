@@ -20,6 +20,18 @@ $error_link_html
 <main>
 <h1>$page_title</h1>
 $page_meta_html
+<search class="site-search" data-search-index="$search_index_href">
+<form class="site-search-form" method="get">
+<label for="site-search-input">検索</label>
+<div class="site-search-controls">
+<input id="site-search-input" name="q" type="search" autocomplete="off">
+<button type="submit">検索</button>
+</div>
+</form>
+<p id="site-search-status" class="search-status" aria-live="polite"></p>
+<ul id="site-search-results" class="search-results"></ul>
+<nav id="site-search-pagination" class="search-pagination" aria-label="検索結果ページ"></nav>
+</search>
 <div id="content-body" class="content-body">
 $body_html
 </div>
