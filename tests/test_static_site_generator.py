@@ -85,6 +85,29 @@ class StaticSiteGeneratorTest(unittest.TestCase):
             favorite_item = next(item for item in search_index["items"] if item["title"] == "Favorite")
             self.assertNotIn("true", favorite_item["text"])
 
+    def test_markdown_supports_tables_and_strikethrough_without_raw_html(self) -> None:
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            source = root / "content"
+            output = root / "public"
+            source.mkdir()
+            (source / "organizations.md").write_text(
+                "# Organizations\n\n"
+                "| Name | Memo |\n"
+                "|---|---|\n"
+                "| JLIS | ~~old~~ new<br>line |\n",
+                encoding="utf-8",
+            )
+
+            build_site(source, output)
+
+            html = (output / "organizations.html").read_text(encoding="utf-8")
+            self.assertIn("<table>", html)
+            self.assertIn("<th>Name</th>", html)
+            self.assertIn("<td>JLIS</td>", html)
+            self.assertIn("<s>old</s> new&lt;br&gt;line", html)
+            self.assertNotIn("<br>line", html)
+
     def test_csv_becomes_table_and_links_http_cells(self) -> None:
         with tempfile.TemporaryDirectory() as temp:
             root = Path(temp)

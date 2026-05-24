@@ -420,6 +420,8 @@ def extract_first_h1(markdown_text: str) -> str | None:
 
 def render_markdown_body(markdown_text: str) -> tuple[str, list[TocItem]]:
     markdown = MarkdownIt("commonmark", {"html": False})
+    markdown.enable("table")
+    markdown.enable("strikethrough")
     tokens: list[Token] = markdown.parse(markdown_text)
     toc_items: list[TocItem] = []
 
