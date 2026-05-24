@@ -23,7 +23,7 @@ build 時に検索用 JSON を生成し、ブラウザ側 JavaScript で検索�
 
 対象に含める。
 
-- Markdown ページのタイトルと本文。
+- Markdown ページのタイトル、本文、front matter の検索用メタデータ。
 - CSV ページのタイトル、ヘッダー、セルの値。
 - `search-index.json` の生成。
 - 全ページ共通の検索フォームと検索結果表示。
@@ -62,7 +62,7 @@ JSON の要素は次の形を基本にする。
       "url": "report.html",
       "kind": "markdown",
       "updated": "2026-05-24",
-      "text": "Trip Plan Body text."
+      "text": "Trip Plan travel report Body text."
     }
   ]
 }
@@ -72,7 +72,9 @@ JSON の要素は次の形を基本にする。
 
 ## 検索対象テキスト
 
-Markdown は front matter を除いた本文を検索対象にする。タイトルは別フィールドに保持し、検索対象にも含める。
+Markdown は front matter を除いた本文を表示用の本文として扱う。検索対象には、タイトル、本文、front matter の検索用メタデータを含める。
+
+front matter の値は、初期実装では厳密な型解釈を増やさず、既存の簡易 parser で読める値を plain text として連結する。`tags: [travel, report]` のような配列風の値も、単純な文字列として検索対象に含める。検索は部分一致でよく、タグ専用の絞り込み UI は追加しない。
 
 CSV は header と cell を plain text として連結する。HTML table の markup は検索対象に入れない。
 
@@ -167,7 +169,7 @@ CSV は header と cell を plain text として連結する。HTML table の ma
 ## 実装手順
 
 1. `RenderedPage` に検索用 plain text を保持するフィールドを追加する。
-2. Markdown 変換時に front matter を除いた本文テキストを保持する。
+2. Markdown 変換時に front matter を除いた本文テキストと、front matter の検索用メタデータを保持する。
 3. CSV 変換時に header と cell の plain text を保持する。
 4. build 時に `search-index.json` を生成して出力する。
 5. `templates/page.html` に検索フォームを追加する。
@@ -183,7 +185,8 @@ unit test で確認する。
 
 - `search-index.json` が生成される。
 - Markdown のタイトルと本文が検索インデックスに入る。
-- Markdown の front matter は本文検索テキストに混ざらない。
+- Markdown の front matter に含まれる `tags` などのメタデータが検索インデックスに入る。
+- Markdown の front matter は表示本文には混ざらない。
 - CSV の header と cell が検索インデックスに入る。
 - static file 本体は検索インデックスに入らない。
 - index ページや errors ページは検索対象に入らない。
