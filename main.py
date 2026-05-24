@@ -53,6 +53,7 @@ class SiteItem:
     title: str
     kind: ItemKind
     mtime: float
+    favorite: bool = False
 
 
 @dataclass(frozen=True)
@@ -73,6 +74,7 @@ class RenderedPage:
     toc_items: list[TocItem]
     copy_markdown: str | None
     search_text: str
+    favorite: bool = False
 
 
 @dataclass(frozen=True)
@@ -346,6 +348,7 @@ def render_markdown_file(source_path: Path, source_rel: PurePosixPath) -> Render
     title = front_matter.get("title")
     if not isinstance(title, str) or not title.strip():
         title = extract_first_h1(markdown_text) or display_name(source_rel)
+    favorite = front_matter_flag_enabled(front_matter, "favorite")
 
     output_rel = source_rel.with_suffix(".html")
     body_html, toc_items = render_markdown_body(markdown_text)
@@ -359,6 +362,7 @@ def render_markdown_file(source_path: Path, source_rel: PurePosixPath) -> Render
         toc_items=toc_items,
         copy_markdown=markdown_text,
         search_text=join_search_text([title.strip(), front_matter_search_text(front_matter), markdown_text]),
+        favorite=favorite,
     )
 
 
@@ -506,12 +510,21 @@ def render_csv_file(source_path: Path, source_rel: PurePosixPath) -> RenderedPag
 
 def front_matter_search_text(front_matter: dict[str, str | list[str]]) -> str:
     values: list[str] = []
-    for value in front_matter.values():
+    for key, value in front_matter.items():
+        if key == "favorite":
+            continue
         if isinstance(value, str):
             values.append(value)
         else:
             values.extend(value)
     return join_search_text(values)
+
+
+def front_matter_flag_enabled(front_matter: dict[str, str | list[str]], key: str) -> bool:
+    value = front_matter.get(key)
+    if not isinstance(value, str):
+        return False
+    return value.strip().casefold() in {"true", "yes", "1", "on"}
 
 
 def csv_search_text(title: str, header: list[str], rows: list[list[str]]) -> str:
@@ -609,7 +622,7 @@ def build_index_pages(
             directories.add(to_posix_path(path.relative_to(source_dir)))
 
     items: list[SiteItem] = [
-        SiteItem(page.source_rel, page.output_rel, page.title, page.kind, page.mtime)
+        SiteItem(page.source_rel, page.output_rel, page.title, page.kind, page.mtime, page.favorite)
         for page in pages
     ]
     items.extend(files)
@@ -656,6 +669,7 @@ def merge_index_page(existing: RenderedPage | None, generated: RenderedPage) -> 
         toc_items=existing.toc_items,
         copy_markdown=existing.copy_markdown,
         search_text=existing.search_text,
+        favorite=existing.favorite,
     )
 
 
@@ -679,12 +693,17 @@ def render_index_body(
     if items:
         parts.append("<h2>Files</h2>")
         parts.append("<ul class=\"file-list\">")
-        for item in sorted(items, key=lambda value: value.source_rel.as_posix()):
+        for item in sorted(items, key=lambda value: (not value.favorite, value.source_rel.as_posix())):
             href = relative_url(current_output_rel, item.output_rel)
             label = html.escape(item.title)
             updated = html.escape(format_mtime(item.mtime))
+            favorite_html = (
+                '<span class="favorite-marker" aria-label="お気に入り" title="お気に入り">★</span> '
+                if item.favorite
+                else ""
+            )
             parts.append(
-                f'<li><a href="{href}">{label}</a> '
+                f'<li>{favorite_html}<a href="{href}">{label}</a> '
                 f'<span class="meta">{updated}</span></li>'
             )
         parts.append("</ul>")
@@ -792,6 +811,8 @@ def render_page_meta(page: RenderedPage, generated_at: datetime) -> str:
         f"{html.escape(page.source_rel.as_posix(), quote=False)}"
         "</textarea>",
     ]
+    if page.favorite:
+        parts.insert(1, '<span class="favorite-label" aria-label="お気に入り">★ お気に入り</span>')
     if page.copy_markdown is not None:
         parts.append(
             '<textarea id="copy-source" class="copy-source" hidden readonly>'

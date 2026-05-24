@@ -55,6 +55,36 @@ class StaticSiteGeneratorTest(unittest.TestCase):
             html = (output / "report.html").read_text(encoding="utf-8")
             self.assertIn("<h1>Front Matter Title</h1>", html)
 
+    def test_front_matter_favorite_marks_detail_and_index(self) -> None:
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            source = root / "content"
+            output = root / "public"
+            source.mkdir()
+            (source / "regular.md").write_text("# Regular\n", encoding="utf-8")
+            (source / "favorite.md").write_text(
+                "---\nfavorite: true\n---\n# Favorite\n",
+                encoding="utf-8",
+            )
+
+            build_site(source, output)
+
+            favorite_html = (output / "favorite.html").read_text(encoding="utf-8")
+            index_html = (output / "index.html").read_text(encoding="utf-8")
+            self.assertIn(
+                '<span class="favorite-label" aria-label="お気に入り">★ お気に入り</span>',
+                favorite_html,
+            )
+            self.assertIn(
+                '<span class="favorite-marker" aria-label="お気に入り" title="お気に入り">★</span>',
+                index_html,
+            )
+            self.assertLess(index_html.index("Favorite"), index_html.index("Regular"))
+
+            search_index = json.loads((output / "search-index.json").read_text(encoding="utf-8"))
+            favorite_item = next(item for item in search_index["items"] if item["title"] == "Favorite")
+            self.assertNotIn("true", favorite_item["text"])
+
     def test_csv_becomes_table_and_links_http_cells(self) -> None:
         with tempfile.TemporaryDirectory() as temp:
             root = Path(temp)

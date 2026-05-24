@@ -130,6 +130,7 @@ front matter は任意とする。
 title: ポーランド旅行計画
 date: 2026-05-23 12:15
 tags: [travel, report]
+favorite: true
 ---
 
 # ポーランド旅行計画
@@ -142,6 +143,8 @@ title の決定順。
 3. ファイル名から作った表示名
 
 最初の実装では、front matter は簡易 parser で扱う。YAML の完全な仕様は実装しない。`key: value` と、必要なら `tags: [a, b]` 程度に絞る。
+
+`favorite: true` を指定した Markdown は、お気に入りとして詳細ページとディレクトリ一覧に目印を表示する。お気に入りの判定は `true`、`yes`、`1`、`on` を有効値とする。ディレクトリ一覧では、お気に入りを通常のファイルより先に表示する。
 
 Markdown の raw HTML は初期実装では無効化またはエスケープする。外部プロセスが生成したファイルを入力にできるため、XSS を避けることを優先する。
 
@@ -200,6 +203,7 @@ Markdown / CSV 以外のファイルは、原則としてそのままコピー�
 - 共通の HTML 外枠は `templates/page.html` に置き、ページごとの title、nav、本文を差し込む。
 - Markdown / CSV の詳細ページには、build 時点の生成日を `<time>` で表示する。
 - Markdown / CSV の詳細ページには、Markdown としてコピーするボタンと、元ファイルの相対パスをコピーするボタンを表示する。Markdown 入力は front matter を除いた本文をコピーし、CSV 入力は Markdown table に変換した内容をコピーする。JavaScript が動かない環境でも本文閲覧は成立させる。
+- `favorite: true` を付けた Markdown の詳細ページとディレクトリ一覧には、お気に入りの目印を表示する。
 - Markdown の詳細ページには、本文見出しから目次を生成し、見出しへのページ内リンクを出す。
 - 変換・コピー時の回復可能なエラーは `errors.html` に一覧表示する。
 

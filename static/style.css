@@ -9,6 +9,9 @@
   --soft-border: #f1f2f4;
   --surface: #ffffff;
   --subtle: #fafafa;
+  --favorite: #8a5a00;
+  --favorite-bg: #fff7df;
+  --favorite-border: #f0d48a;
   --error-bg: #fff8f7;
   --error-border: #d13f32;
 }
@@ -141,6 +144,25 @@ th {
 .meta {
   color: var(--muted);
   font-size: 0.9rem;
+}
+
+.favorite-marker,
+.favorite-label {
+  color: var(--favorite);
+}
+
+.favorite-marker {
+  display: inline-block;
+  margin-inline-end: 4px;
+}
+
+.favorite-label {
+  border: 1px solid var(--favorite-border);
+  border-radius: 4px;
+  background: var(--favorite-bg);
+  font-size: 0.9rem;
+  line-height: 1.4;
+  padding: 3px 8px;
 }
 
 .page-tools {
