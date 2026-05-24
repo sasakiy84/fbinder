@@ -779,9 +779,18 @@ def render_page_meta(page: RenderedPage, generated_at: datetime) -> str:
         '<p class="page-meta">生成日: '
         f'<time datetime="{generated_iso}">{generated_text}</time></p>',
         '<button type="button" class="copy-button" data-copy-content="copy-source" '
-        'data-copy-label="Markdownをコピー" aria-describedby="copy-status">Markdownをコピー</button>',
+        'data-copy-label="Markdownをコピー" data-copy-empty-message="コピーするMarkdownがありません" '
+        'data-copy-success-message="Markdownをコピーしました" aria-describedby="copy-status">'
+        "Markdownをコピー</button>",
+        '<button type="button" class="copy-button" data-copy-content="copy-source-path" '
+        'data-copy-label="パスをコピー" data-copy-empty-message="コピーするパスがありません" '
+        'data-copy-success-message="元ファイルの相対パスをコピーしました" aria-describedby="copy-status">'
+        "パスをコピー</button>",
         '<span id="copy-status" class="copy-status" aria-live="polite"></span>',
         "</div>",
+        '<textarea id="copy-source-path" class="copy-source" hidden readonly>'
+        f"{html.escape(page.source_rel.as_posix(), quote=False)}"
+        "</textarea>",
     ]
     if page.copy_markdown is not None:
         parts.append(

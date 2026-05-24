@@ -34,20 +34,22 @@
       const text = target instanceof HTMLTextAreaElement || target instanceof HTMLInputElement
         ? target.value
         : target ? target.innerText : "";
+      const label = button.getAttribute("data-copy-label") || button.textContent || "コピー";
+      const emptyMessage = button.getAttribute("data-copy-empty-message") || "コピーする内容がありません";
+      const successMessage = button.getAttribute("data-copy-success-message") || "コピーしました";
 
       if (!text.trim()) {
         if (status) {
-          status.textContent = "コピーするMarkdownがありません";
+          status.textContent = emptyMessage;
         }
         return;
       }
 
       try {
         await copyText(text);
-        const label = button.getAttribute("data-copy-label") || "Markdownをコピー";
         button.textContent = "コピー済み";
         if (status) {
-          status.textContent = "Markdownをコピーしました";
+          status.textContent = successMessage;
         }
         window.setTimeout(() => {
           button.textContent = label;
