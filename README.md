@@ -96,6 +96,7 @@ systemctl --user status fbinder-watch.service
 
 - `*.md` は HTML ページへ変換します。front matter の `title`、最初の `# 見出し`、ファイル名の順でページタイトルを決めます。Markdown の pipe table と `~~取り消し線~~` に対応します。`favorite: true` を付けた Markdown は詳細ページと一覧でお気に入りとして表示します。
 - `*.csv` は `<table>` を持つ HTML ページへ変換します。`http://` または `https://` で始まるセルはリンクにします。
+- Markdown / CSV の表は、列数が多い場合に横スクロールで確認できます。
 - Markdown / CSV 由来のページは `search-index.json` に収録され、生成ページ上の検索フォームから全文検索できます。検索状態は URL の `q` と `page` で表します。
 - Markdown / CSV の詳細ページには生成日、Markdown コピーボタン、元ファイルの相対パスをコピーするボタンを表示します。Markdown ページでは本文見出しから目次も生成します。
 - その他のファイルは相対パスを保ってコピーします。

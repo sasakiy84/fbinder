@@ -443,7 +443,15 @@ def render_markdown_body(markdown_text: str) -> tuple[str, list[TocItem]]:
         toc_items.append(TocItem(level=int(token.tag[1]), title=inline.content.strip(), anchor=anchor))
 
     rendered = markdown.renderer.render(tokens, markdown.options, {})
-    return rendered.replace("<pre><code", '<pre tabindex="0"><code'), toc_items
+    rendered = rendered.replace("<pre><code", '<pre tabindex="0"><code')
+    return wrap_markdown_tables(rendered), toc_items
+
+
+def wrap_markdown_tables(rendered_html: str) -> str:
+    return rendered_html.replace("<table>", '<div class="table-wrap">\n<table>').replace(
+        "</table>",
+        "</table>\n</div>",
+    )
 
 
 def render_csv_file(source_path: Path, source_rel: PurePosixPath) -> RenderedPage:

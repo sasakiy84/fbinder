@@ -112,12 +112,14 @@ code {
 }
 
 .table-wrap {
+  max-inline-size: 100%;
   overflow-x: auto;
+  overscroll-behavior-inline: contain;
 }
 
 table {
-  width: 100%;
-  min-width: 640px;
+  inline-size: max-content;
+  min-inline-size: 100%;
   border-collapse: collapse;
   background: var(--surface);
 }
@@ -131,6 +133,8 @@ caption {
 th,
 td {
   border-block-end: 1px solid var(--border);
+  min-inline-size: 9rem;
+  max-inline-size: 24rem;
   padding: 10px 12px;
   text-align: left;
   vertical-align: top;

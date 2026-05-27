@@ -102,7 +102,7 @@ class StaticSiteGeneratorTest(unittest.TestCase):
             build_site(source, output)
 
             html = (output / "organizations.html").read_text(encoding="utf-8")
-            self.assertIn("<table>", html)
+            self.assertIn('<div class="table-wrap">\n<table>', html)
             self.assertIn("<th>Name</th>", html)
             self.assertIn("<td>JLIS</td>", html)
             self.assertIn("<s>old</s> new&lt;br&gt;line", html)
